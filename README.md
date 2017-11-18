@@ -1,26 +1,55 @@
 # ember-cli-deploy-corber
 
-This README outlines the details of collaborating on this Ember addon.
+Plugin for ember-cli-deploy to build the project using [corber](http://corber.io/).
+
+> This plugin is work in progress.
+> It's only tested aginst android target platform so far.
+> I would appreciate any feedback and pull requests.
 
 ## Installation
 
-* `git clone <repository-url>` this repository
-* `cd ember-cli-deploy-corber`
-* `yarn install`
+* `ember install ember-cli-deploy-corber`
 
-## Running
+## Usage
 
-* `ember serve`
-* Visit your app at [http://localhost:4200](http://localhost:4200).
+```
+// config/deploy.js
+module.exports = function(deployTarget) {
+  let ENV = {
+    build: {},
+    corber: {
+      platform: 'android'
+    }
+  };
 
-## Running Tests
+  if (deployTarget === 'development') {
+    ENV.build.environment = 'development';
+    ENV.corber.enabled = false;
+  }
 
-* `yarn test` (Runs `ember try:each` to test your addon against multiple Ember versions)
-* `ember test`
-* `ember test --server`
+  if (deployTarget === 'staging') {
+    ENV.build.environment = 'production';
+  }
 
-## Building
+  if (deployTarget === 'production') {
+    ENV.build.environment = 'production';
+    ENV.corber.release = true;
+    ENV.corber.keystore = process.env.ANDROID_KEYSTORE;
+    ENV.corber.storePassword = process.env.ANDROID_KEYSTORE_STORE_PASSWORD;
+    ENV.corber.alias = process.env.ANDROID_KEYSTORE_ALIAS;
+    ENV.corber.password = process.env.ANDROID_KEYSTORE_PASSWORD;
+  }
 
-* `ember build`
+  return ENV;
+};
+```
 
-For more information on using ember-cli, visit [https://ember-cli.com/](https://ember-cli.com/).
+## Configuration
+
+The plugin supports all options supported by `corber build`. Have a look at [corber docs](http://corber.io/pages/cli#build).
+
+Additionally an `enabled` option controls if a corber build should be run. It defaults to `true`.
+
+This plugin implements `didBuild` hook. If you run any modifications to generated web artifacts, make sure the modifications are executed before this plugin. Otherwise they won't effect corber builds. You should [customize plugin order](http://ember-cli-deploy.com/docs/v1.0.x/configuration/#advanced-plugin-configuration) if needed.
+
+Cou could [include the plugin multiple times](http://ember-cli-deploy.com/docs/v1.0.x/including-a-plugin-twice/) to build for more than one platform.

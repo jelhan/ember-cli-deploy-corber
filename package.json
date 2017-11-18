@@ -1,9 +1,12 @@
 {
   "name": "ember-cli-deploy-corber",
   "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "description": "An ember-cli-deploy plugin to build the project using corber.",
   "keywords": [
-    "ember-addon"
+    "corber",
+    "cordova",
+    "ember-addon",
+    "ember-cli-deploy-plugin"
   ],
   "license": "MIT",
   "author": "",
@@ -13,37 +16,21 @@
   },
   "repository": "",
   "scripts": {
-    "build": "ember build",
-    "start": "ember server",
-    "test": "ember try:each"
+    "test": "node tests/runner.js && ./node_modules/.bin/eslint index.js tests/**/*-test.js"
   },
   "dependencies": {
-    "ember-cli-babel": "^6.6.0"
+    "corber": "isleofcode/corber#7dddff01177f5ce8553dd6585b06dcd2dc53828f",
+    "ember-cli-deploy-plugin": "^0.2.9",
+    "ember-cli-string-utils": "^1.1.0",
+    "fs-extra": "^4.0.2"
   },
   "devDependencies": {
-    "broccoli-asset-rev": "^2.4.5",
-    "ember-ajax": "^3.0.0",
-    "ember-cli": "~2.16.2",
-    "ember-cli-dependency-checker": "^2.0.0",
-    "ember-cli-eslint": "^4.0.0",
-    "ember-cli-htmlbars": "^2.0.1",
-    "ember-cli-htmlbars-inline-precompile": "^1.0.0",
-    "ember-cli-inject-live-reload": "^1.4.1",
-    "ember-cli-qunit": "^4.0.0",
-    "ember-cli-shims": "^1.1.0",
-    "ember-cli-sri": "^2.1.0",
-    "ember-cli-uglify": "^2.0.0",
-    "ember-disable-prototype-extensions": "^1.1.2",
-    "ember-export-application-global": "^2.0.0",
-    "ember-load-initializers": "^1.0.0",
-    "ember-resolver": "^4.0.0",
-    "ember-source": "~2.16.0",
-    "loader.js": "^4.2.3"
+    "chai": "^4.1.2",
+    "eslint": "^4.11.0",
+    "mocha": "^4.0.1",
+    "testdouble": "^3.2.6"
   },
   "engines": {
     "node": "^4.5 || 6.* || >= 7.*"
-  },
-  "ember-addon": {
-    "configPath": "tests/dummy/config"
   }
 }
