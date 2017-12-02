@@ -1,6 +1,6 @@
 {
   "name": "ember-cli-deploy-corber",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "An ember-cli-deploy plugin to build the project using corber.",
   "keywords": [
     "corber",
