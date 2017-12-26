@@ -19,10 +19,10 @@
     "test": "node tests/runner.js && ./node_modules/.bin/eslint index.js tests/**/*-test.js"
   },
   "dependencies": {
-    "corber": "isleofcode/corber#7dddff01177f5ce8553dd6585b06dcd2dc53828f",
+    "corber": "^1.1.11",
     "ember-cli-deploy-plugin": "^0.2.9",
     "ember-cli-string-utils": "^1.1.0",
-    "fs-extra": "^4.0.2"
+    "fs-extra": "^5.0.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
