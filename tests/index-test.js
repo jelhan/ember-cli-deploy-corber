@@ -142,6 +142,8 @@ describe('corber plugin', function() {
 
       fsMock = td.replace('fs-extra');
       td.when(fsMock.copySync(td.matchers.anything(), td.matchers.anything())).thenReturn();
+      td.when(fsMock.removeSync(td.matchers.anything())).thenReturn();
+      td.when(fsMock.readdirSync(td.matchers.anything())).thenReturn([]);
 
       subject = require('../index');
     });
@@ -188,26 +190,36 @@ describe('corber plugin', function() {
       });
     });
 
-    it('adds buildArtifacts to context', function() {
-      td.when(CorberBuildMock(td.matchers.anything())).thenReturn({
-        validateAndRun() {
-          require('cordova-common').events.emit('log',
-            'Built the following apk(s): \n\t' +
-            '/path/to/foo.apk')
-          return Promise.resolve();
-        },
-      });
+    it('clears build output folder (android platform)', function() {
       let subject = require('../index');
       let plugin = subject.createDeployPlugin({
         name: 'corber',
       });
       context.config.corber.platform = 'android';
       plugin.beforeHook(context);
-      return plugin.didBuild(context).then((context) => {
-        expect(context).to.deep.equal({
+      return plugin.didBuild(context).then(() => {
+        td.verify(
+          fsMock.removeSync(`${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/`)
+        );
+      });
+    });
+
+    it('adds buildArtifacts to context (android platform)', function() {
+      td.when(
+        fsMock.readdirSync(td.matchers.anything())
+      ).thenReturn(['foo.apk', 'bar.apk']);
+      let subject = require('../index');
+      let plugin = subject.createDeployPlugin({
+        name: 'corber',
+      });
+      context.config.corber.platform = 'android';
+      plugin.beforeHook(context);
+      return plugin.didBuild(context).then((returnedContext) => {
+        expect(returnedContext).to.deep.equal({
           corber: {
             android: [
-              '/path/to/foo.apk',
+              `${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/foo.apk`,
+              `${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/bar.apk`
             ],
           },
         });

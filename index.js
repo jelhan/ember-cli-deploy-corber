@@ -3,11 +3,13 @@
 
 const BasePlugin = require('ember-cli-deploy-plugin');
 const Build = require('corber/lib/commands/build');
-const Promise = require('rsvp').Promise;
 const cordovaPath = require('corber/lib/targets/cordova/utils/get-path');
-const dasherize = require('ember-cli-string-utils').dasherize;
-const cordovaEvents = require('cordova-common').events;
-const fs = require('fs-extra');
+const { Promise } = require('rsvp');
+const { dasherize } = require('ember-cli-string-utils');
+const { copySync, readdirSync, removeSync } = require('fs-extra');
+
+// path to cordova android build output folder relative to `corber/corodva` project folder
+const ANDROID_BUILD_OUTPUT_PATH = '/platforms/android/build/outputs/apk/';
 
 module.exports = {
   name: 'ember-cli-deploy-corber',
@@ -32,24 +34,23 @@ module.exports = {
 
           // cordova requires web artifacts to be in cordova's `www` sub directory
           this.log(`Copying framework build to ${cordovaOutputPath}`, { verbose: true });
-          fs.copySync(context.distDir, cordovaOutputPath);
+          copySync(context.distDir, cordovaOutputPath);
 
-          // capture build artifacts
-          // Cordova does not support any public api to retrieve build atrifacts.
-          // Have to use platform specific hacks.
-          let buildArtifacts;
+          // Clear build output folder.
+          // Since cordova does not provide any public api to retrieve build atrifacts, we retrieve them from content
+          // in build output folder.
+          let buildOutputPath;
           switch (platform) {
             case 'android':
-              cordovaEvents.on('log', function(message) {
-                if (message.includes('Built the following apk(s): \n\t')) {
-                  buildArtifacts = message.split('\n\t').slice(1);
-                }
-              });
+              buildOutputPath = cordovaPath(context.project).concat(ANDROID_BUILD_OUTPUT_PATH);
               break;
 
             default:
               this.log('Adding build artifacts to ember-cli-build context is ' +
                        `not supported yet for platform ${platform}`, { color: 'red' });
+          }
+          if (buildOutputPath) {
+            removeSync(buildOutputPath);
           }
 
           this.log(`Running: corber build ${buildArgs.join(' ')}`, { verbose: true });
@@ -60,12 +61,22 @@ module.exports = {
           });
           return build.validateAndRun(buildArgs).then(() => {
             this.log('Corber build okay', { verbose: true });
-            if (Array.isArray(buildArtifacts)) {
-              this.log(`Build artifacts: ${buildArtifacts.join(', ')}`, { verbose: true });
-            } else {
-              this.log('Could not capture any build artifacts', { color: 'red' });
+
+            let buildArtifacts;
+            if (buildOutputPath) {
+              buildArtifacts = readdirSync(buildOutputPath).map((filename) => {
+                return buildOutputPath.concat(filename);
+              });
             }
 
+            if (!Array.isArray(buildArtifacts) || buildArtifacts.length === 0) {
+              this.log('Could not capture any build artifacts', { color: 'red' });
+              resolve();
+            }
+
+            this.log(`Build artifacts: ${buildArtifacts.join(', ')}`, { verbose: true });
+
+            // add build artifacts to context
             let context = {
               corber: {}
             };
