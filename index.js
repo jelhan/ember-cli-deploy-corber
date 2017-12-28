@@ -3,7 +3,7 @@
 
 const BasePlugin = require('ember-cli-deploy-plugin');
 const Build = require('corber/lib/commands/build');
-const cordovaPath = require('corber/lib/targets/cordova/utils/get-path');
+const getCordovaPath = require('corber/lib/targets/cordova/utils/get-path');
 const { Promise } = require('rsvp');
 const { dasherize } = require('ember-cli-string-utils');
 const { copySync, readdirSync, removeSync } = require('fs-extra');
@@ -22,36 +22,30 @@ module.exports = {
         enabled: true
       },
 
+      setup: function(context) {
+        // Clear build output folder.
+        // Since cordova does not provide any public api to retrieve build atrifacts, we retrieve them from content
+        // in build output folder and therefore it must be empty.
+        let buildOutputPath = this.getBuildOutputPath(context);
+        if (buildOutputPath) {
+          return removeSync(buildOutputPath);
+        }
+      },
+
       didBuild: function(context) {
         if (!this.readConfig('enabled')) {
           return;
         }
 
         return new Promise((resolve, reject) => {
-          let platform = this.readConfig('platform');
-          let cordovaOutputPath = cordovaPath(context.project).concat('/www');
+          let cordovaOutputPath = getCordovaPath(context.project).concat('/www');
           let buildArgs = this.getBuildArgs();
+          let buildOutputPath = this.getBuildOutputPath(context);
+          let platform = this.readConfig('platform');
 
           // cordova requires web artifacts to be in cordova's `www` sub directory
           this.log(`Copying framework build to ${cordovaOutputPath}`, { verbose: true });
           copySync(context.distDir, cordovaOutputPath);
-
-          // Clear build output folder.
-          // Since cordova does not provide any public api to retrieve build atrifacts, we retrieve them from content
-          // in build output folder.
-          let buildOutputPath;
-          switch (platform) {
-            case 'android':
-              buildOutputPath = cordovaPath(context.project).concat(ANDROID_BUILD_OUTPUT_PATH);
-              break;
-
-            default:
-              this.log('Adding build artifacts to ember-cli-build context is ' +
-                       `not supported yet for platform ${platform}`, { color: 'red' });
-          }
-          if (buildOutputPath) {
-            removeSync(buildOutputPath);
-          }
 
           this.log(`Running: corber build ${buildArgs.join(' ')}`, { verbose: true });
           let build = new Build({
@@ -111,6 +105,22 @@ module.exports = {
         }
 
         return args;
+      },
+
+      getBuildOutputPath: function(context) {
+        let platform = this.readConfig('platform');
+        let projectPath = context.project;
+        let cordovaPath = getCordovaPath(projectPath);
+
+        switch (platform) {
+          case 'android':
+            return cordovaPath.concat(ANDROID_BUILD_OUTPUT_PATH);
+
+          default:
+            this.log('Adding build artifacts to ember-cli-build context is ' +
+                     `not supported yet for platform ${platform}`, { color: 'red' });
+            return;
+        }
       }
     });
 

@@ -116,6 +116,37 @@ describe('corber plugin', function() {
     });
   });
 
+  describe('setup hook', function() {
+    let fsMock;
+
+    beforeEach(() => {
+      td.config({
+        // Do not warn about using both td.when and td.verify for a single interaction.
+        // We are stubbing the dependencies to make tests running without testing the
+        // internals of our dependencies.
+        // We use `td.verify` to ensure dependencies are called with correct arguments.
+        ignoreWarnings: true,
+      });
+
+      fsMock = td.replace('fs-extra');
+      td.when(fsMock.removeSync(td.matchers.anything())).thenReturn();
+    });
+
+    it('clears build output folder (android platform)', function() {
+      let subject = require('../index');
+      let plugin = subject.createDeployPlugin({
+        name: 'corber',
+      });
+      context.config.corber.platform = 'android';
+      plugin.beforeHook(context);
+      plugin.setup(context);
+
+      td.verify(
+        fsMock.removeSync(`${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/`)
+      );
+    });
+  });
+
   describe('didBuild hook', function() {
     let CorberBuildMock;
     let cordovaOutputPathMock;
@@ -187,20 +218,6 @@ describe('corber plugin', function() {
           })
         );
         assert.ok(executed);
-      });
-    });
-
-    it('clears build output folder (android platform)', function() {
-      let subject = require('../index');
-      let plugin = subject.createDeployPlugin({
-        name: 'corber',
-      });
-      context.config.corber.platform = 'android';
-      plugin.beforeHook(context);
-      return plugin.didBuild(context).then(() => {
-        td.verify(
-          fsMock.removeSync(`${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/`)
-        );
       });
     });
 
