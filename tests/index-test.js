@@ -243,6 +243,33 @@ describe('corber plugin', function() {
       });
     });
 
+    it('concacts new buildArtifacts to existing build artifacts', function() {
+      td.when(
+        fsMock.readdirSync(td.matchers.anything())
+      ).thenReturn(['bar.apk']);
+      let subject = require('../index');
+      let plugin = subject.createDeployPlugin({
+        name: 'corber',
+      });
+      context.config.corber.platform = 'android';
+      plugin.beforeHook(context);
+      context.corber = {
+        android: [
+          `${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/foo.apk`
+        ]
+      };
+      return plugin.didBuild(context).then((returnedContext) => {
+        expect(returnedContext).to.deep.equal({
+          corber: {
+            android: [
+              `${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/foo.apk`,
+              `${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/bar.apk`
+            ],
+          },
+        });
+      });
+    });
+
     it('returns immediately if enabled is false', function() {
       let plugin = subject.createDeployPlugin({
         name: 'corber',

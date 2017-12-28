@@ -71,11 +71,17 @@ module.exports = {
             this.log(`Build artifacts: ${buildArtifacts.join(', ')}`, { verbose: true });
 
             // add build artifacts to context
-            let context = {
+            let additionalContext = {
               corber: {}
             };
-            context.corber[platform] = buildArtifacts;
-            resolve(context);
+
+            if (context.corber && Array.isArray(context.corber[platform])) {
+              additionalContext.corber[platform] = context.corber[platform].concat(buildArtifacts);
+            } else {
+              additionalContext.corber[platform] = buildArtifacts;
+            }
+
+            resolve(additionalContext);
           }).catch(reject);
         });
       },
