@@ -6,7 +6,7 @@ const Build = require('corber/lib/commands/build');
 const getCordovaPath = require('corber/lib/targets/cordova/utils/get-path');
 const { Promise } = require('rsvp');
 const { dasherize } = require('ember-cli-string-utils');
-const { copySync, readdirSync, removeSync } = require('fs-extra');
+const { copySync, readdirSync, remove } = require('fs-extra');
 
 // path to cordova android build output folder relative to `corber/corodva` project folder
 const ANDROID_BUILD_OUTPUT_PATH = '/platforms/android/build/outputs/apk/';
@@ -23,13 +23,27 @@ module.exports = {
       },
 
       setup: function(context) {
-        // Clear build output folder.
-        // Since cordova does not provide any public api to retrieve build atrifacts, we retrieve them from content
-        // in build output folder and therefore it must be empty.
-        let buildOutputPath = this.getBuildOutputPath(context);
-        if (buildOutputPath) {
-          return removeSync(buildOutputPath);
-        }
+        return new Promise((resolve, reject) => {
+          // Clear build output folder.
+          // Since cordova does not provide any public api to retrieve build atrifacts, we retrieve them from content
+          // in build output folder and therefore it must be empty.
+          let buildOutputPath = this.getBuildOutputPath(context);
+
+          if (!buildOutputPath) {
+            // resolve immediately if build output path for this platform is unknown
+            resolve();
+          }
+
+          remove(buildOutputPath, (err) => {
+            if (err) {
+              this.log(`Failed to clear build output at ${buildOutputPath}.`, { color: 'red' });
+              this.log(err, { color: 'red' });
+              reject();
+            }
+
+            resolve();
+          });
+        });
       },
 
       didBuild: function(context) {

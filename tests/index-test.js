@@ -129,7 +129,15 @@ describe('corber plugin', function() {
       });
 
       fsMock = td.replace('fs-extra');
-      td.when(fsMock.removeSync(td.matchers.anything())).thenReturn();
+      td.when(fsMock.remove(td.matchers.anything())).thenCallback();
+    });
+
+    it('returns a promise', function() {
+      let plugin = subject.createDeployPlugin({
+        name: 'corber',
+      });
+      plugin.beforeHook(context);
+      assert.ok(plugin.setup() instanceof Promise);
     });
 
     it('clears build output folder (android platform)', function() {
@@ -139,11 +147,14 @@ describe('corber plugin', function() {
       });
       context.config.corber.platform = 'android';
       plugin.beforeHook(context);
-      plugin.setup(context);
-
-      td.verify(
-        fsMock.removeSync(`${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/`)
-      );
+      return plugin.setup(context).then(() => {
+        td.verify(
+          fsMock.remove(
+            `${context.project.root}/corber/cordova/platforms/android/build/outputs/apk/`,
+            td.matchers.anything()
+          )
+        );
+      });
     });
   });
 
