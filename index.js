@@ -61,6 +61,10 @@ module.exports = {
           this.log(`Copying framework build to ${cordovaOutputPath}`, { verbose: true });
           copySync(context.distDir, cordovaOutputPath);
 
+          // corber changes log level of context.ui passed in if called with `--quiet` flag
+          // store current log level to reset it afterwards
+          let logLevel = this.getLogLevel(context.ui);
+
           this.log(`Running: corber build ${buildArgs.join(' ')}`, { verbose: true });
           let build = new Build({
             ui: context.ui,
@@ -68,6 +72,9 @@ module.exports = {
             settings: {}
           });
           return build.validateAndRun(buildArgs).then(() => {
+            // reset log level which got changed by corber called with `--quiet` flag
+            context.ui.setWriteLevel(logLevel);
+
             this.log('Corber build okay', { verbose: true });
 
             let buildArtifacts;
@@ -103,7 +110,6 @@ module.exports = {
       getBuildArgs: function() {
         let ignoredOptions = ['enabled'];
         let pluginOptions = this.pluginConfig;
-        let verbose = this.context.commandOptions.verbose;
 
         let args = Object.keys(pluginOptions).filter(pluginOption => {
           return ignoredOptions.indexOf(pluginOption) === -1;
@@ -120,9 +126,7 @@ module.exports = {
 
         args.push('--skip-framework-build');
         args.push('--add-cordova-js');
-        if (!verbose) {
-          args.push('--quiet');
-        }
+        args.push('--quiet');
 
         return args;
       },
@@ -141,6 +145,27 @@ module.exports = {
                      `not supported yet for platform ${platform}`, { color: 'red' });
             return;
         }
+      },
+
+      getLogLevel: function(ui) {
+        // console-ui does not provide any public api to retrieve current log log level
+        // guess it by wirteLevelVisible method
+        let logLevels = [
+          'DEBUG',
+          'INFO',
+          'WARNING',
+          'ERROR'
+        ];
+        let currentLogLevel = logLevels.find((logLevel) => {
+          return ui.writeLevelVisible(logLevel);
+        });
+
+        if (!currentLogLevel) {
+          this.log('Could not guess current log level. Using ERROR as fallback.', { color: 'red' });
+          return 'ERROR';
+        }
+
+        return currentLogLevel;
       }
     });
 

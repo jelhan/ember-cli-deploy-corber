@@ -29,7 +29,12 @@ describe('corber plugin', function() {
         root: 'path/to/project/root',
       },
       ui: {
+        setWriteLevel() {
+        },
         write: function() {
+        },
+        writeLevelVisible() {
+          return true;
         },
         writeLine: function() {
         },
@@ -87,15 +92,6 @@ describe('corber plugin', function() {
       });
       plugin.beforeHook(context);
       assert.ok(plugin.getBuildArgs().indexOf('--quiet') !== -1);
-    });
-
-    it('does not add --quiet argument if verbose is true', function() {
-      let plugin = subject.createDeployPlugin({
-        name: 'corber',
-      });
-      context.commandOptions.verbose = true;
-      plugin.beforeHook(context);
-      assert.ok(plugin.getBuildArgs().indexOf('--quiet') === -1);
     });
 
     it('adds options as arguments', function() {
