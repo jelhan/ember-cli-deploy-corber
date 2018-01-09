@@ -1,6 +1,6 @@
 # ember-cli-deploy-corber
 
-[![Build Status](https://travis-ci.org/jelhan/ember-cli-deploy-corber.svg?branch=v0.0.1)](https://travis-ci.org/jelhan/ember-cli-deploy-corber)
+[![Build Status](https://travis-ci.org/jelhan/ember-cli-deploy-corber.svg?branch=master)](https://travis-ci.org/jelhan/ember-cli-deploy-corber)
 
 Plugin for ember-cli-deploy to build the project using [corber](http://corber.io/).
 
