@@ -5,7 +5,7 @@
 Plugin for ember-cli-deploy to build the project using [corber](http://corber.io/).
 
 > This plugin is work in progress.
-> It's only tested aginst android target platform so far.
+> It's only tested against android target platform so far.
 > I would appreciate any feedback and pull requests.
 
 ## Installation
