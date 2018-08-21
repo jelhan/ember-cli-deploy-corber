@@ -46,6 +46,8 @@ module.exports = function(deployTarget) {
 };
 ```
 
+The plugin adds a `corber` key to build context, which provides paths to build artifacts under a platform specific key (e.g. `android`).
+
 ## Configuration
 
 The plugin supports all options supported by `corber build`. Have a look at [corber docs](http://corber.io/pages/cli#build).
@@ -54,4 +56,8 @@ Additionally an `enabled` option controls if a corber build should be run. It de
 
 This plugin implements `didBuild` hook. If you run any modifications to generated web artifacts, make sure the modifications are executed before this plugin. Otherwise they won't effect corber builds. You should [customize plugin order](http://ember-cli-deploy.com/docs/v1.0.x/configuration/#advanced-plugin-configuration) if needed.
 
-Cou could [include the plugin multiple times](http://ember-cli-deploy.com/docs/v1.0.x/including-a-plugin-twice/) to build for more than one platform.
+You could [include the plugin multiple times](http://ember-cli-deploy.com/docs/v1.0.x/including-a-plugin-twice/) to build for more than one platform.
+
+## Related plugins
+
+* [ember-cli-deploy-zipalign](https://github.com/jelhan/ember-cli-deploy-zipalign)
